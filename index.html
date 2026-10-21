@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#09090c">
+<title>NEXAR ESPORTS — Mini App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;0,800;0,900;1,900&display=swap');
+
+:root {
+  --bg: #09090c;
+  --panel: #121217;
+  --line: #292930;
+  --red: #e51e32;
+  --red-dark: #a80e20;
+  --white: #f7f7fa;
+  --muted: #92929d;
+  --green: #39d98a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
+body { background: radial-gradient(ellipse at 50% -20%, #321019 0%, #101015 38%, var(--bg) 72%); color: var(--white); min-height: 100vh; overflow-x: hidden; }
+
+/* 1 SONIYALIK KIRISH ANIMATSIYASI */
+#splash-screen {
+  position: fixed; inset: 0; background: #000; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  animation: hideSplash 0.5s ease 1.5s forwards;
+}
+.splash-logo { width: 100px; height: 100px; animation: pulseLogo 1s ease infinite alternate; }
+.splash-text { font-size: 24px; font-weight: 900; letter-spacing: 2px; margin-top: 20px; opacity: 0; animation: fadeIn 0.5s ease 0.3s forwards; }
+.splash-text span { color: var(--red); }
+@keyframes hideSplash { to { opacity: 0; visibility: hidden; } }
+@keyframes pulseLogo { from { transform: scale(0.9); opacity: 0.8; } to { transform: scale(1); opacity: 1; } }
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* ASOSIY APP */
+.app { max-width: 520px; margin: 0 auto; padding: env(safe-area-inset-top) 15px calc(100px + env(safe-area-inset-bottom)); position: relative; min-height: 100vh; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 18px 3px 20px; }
+.brand { display: flex; align-items: center; gap: 11px; }
+.mark { width: 42px; height: 42px; border-radius: 15px; background: linear-gradient(145deg,#f02b40,#a40e20); display: grid; place-items: center; font-weight: 900; font-style: italic; font-size: 17px; letter-spacing: -2px; }
+.brand-name { font-size: 16px; font-weight: 900; letter-spacing: 1.5px; }
+.brand-sub { font-size: 9px; color: #b6b6c0; letter-spacing: 3px; margin-top: 3px; }
+
+.screen { display: none; animation: rise 0.3s ease; }
+.screen.active { display: block; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* TURNIR BOSH SAHIFASI */
+.tourn-hero {
+  position: relative; border-radius: 24px; overflow: hidden;
+  background: linear-gradient(135deg, #1a0000, #000);
+  border: 1px solid #330000; margin-bottom: 24px; padding: 35px 20px; text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+.tourn-hero h1 { font-size: 32px; font-style: italic; font-weight: 900; margin: 0; text-shadow: 0 0 20px rgba(229, 30, 50, 0.5); }
+.tourn-hero h1 span { color: var(--red); }
+.tourn-hero p { color: #aaa; font-size: 11px; letter-spacing: 3px; margin-top: 5px; text-transform: uppercase; }
+
+.main-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 22px; border-radius: 20px; margin-bottom: 16px; text-align: left;
+  transition: transform 0.2s; border: none; cursor: pointer; color: inherit;
+}
+.main-btn:active { transform: scale(0.97); }
+.main-btn-primary { background: linear-gradient(90deg, #e51e32, #a80e20); box-shadow: 0 8px 25px rgba(229, 30, 50, 0.3); }
+.main-btn-secondary { background: linear-gradient(90deg, #1f1f27, #111116); border: 1px solid #333; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); }
+.btn-content h2 { font-size: 20px; font-weight: 900; margin: 0 0 5px 0; color: #fff; }
+.btn-content p { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin: 0; }
+.btn-icon { font-size: 28px; background: rgba(0,0,0,0.2); width: 50px; height: 50px; display: grid; place-items: center; border-radius: 15px; }
+
+/* UMUMIY KOMPONENTLAR */
+.eyebrow { color: #ff5263; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+.section-title { font-size: 24px; letter-spacing: -0.5px; font-weight: 900; margin: 5px 0 15px; }
+.sub { color: var(--muted); font-size: 12px; margin-bottom: 20px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; padding: 12px 18px; background: var(--red); color: white; font-weight: 800; font-size: 12px; cursor: pointer; border: none; transition: 0.2s; }
+.btn:active { transform: scale(0.95); }
+.btn.secondary { background: #25252d; border: 1px solid #383840; }
+.btn.full { width: 100%; margin-top: 15px; }
+
+/* TURNIR KARTALARI */
+.wide-card { display: flex; align-items: center; gap: 13px; padding: 15px; background: #15151b; border: 1px solid #292932; border-radius: 18px; margin-bottom: 12px; }
+.wide-icon { width: 45px; height: 45px; border-radius: 14px; background: #22222b; display: grid; place-items: center; font-size: 20px; }
+.wide-info h4 { font-size: 13px; margin-bottom: 4px; }
+.wide-info p { font-size: 10px; color: var(--muted); }
+.badge-pill { font-size: 9px; background: #173729; color: #65e6a8; padding: 5px 8px; border-radius: 10px; font-weight: bold; margin-left: auto; }
+
+/* SHOW MATCH KARTALARI */
+.match-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.match-card { border: 1px solid #2a2a33; background: #15151b; border-radius: 18px; padding: 16px 12px; text-align: center; }
+.match-card .versus { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px; }
+.avatar { width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(145deg,#34343e,#1b1b23); border: 1px solid #4a4a55; display: grid; place-items: center; font-size: 16px; }
+.vs { font-size: 10px; color: #ff5263; font-weight: 900; font-style: italic; }
+.match-card h4 { font-size: 13px; margin-bottom: 5px; }
+.match-card p { font-size: 10px; color: var(--muted); margin-bottom: 13px; }
+.match-card .btn { width: 100%; padding: 10px 5px; font-size: 10px; }
+
+/* MARKETPLACE VA PROFIL */
+.market-card { display: flex; align-items: center; gap: 14px; padding: 16px; background: linear-gradient(110deg,#1b1b23,#131318); border: 1px solid #2c2c34; border-radius: 18px; margin-bottom: 10px; text-align: left; width: 100%; color: white; cursor: pointer; }
+.market-card .wide-icon { width: 48px; height: 48px; }
+.market-card h3 { font-size: 14px; margin-bottom: 4px; }
+.market-card p { font-size: 11px; color: var(--muted); }
+
+.profile-top { display: flex; align-items: center; gap: 14px; padding: 20px; background: linear-gradient(120deg,#251017,#15151b); border: 1px solid #49222c; border-radius: 20px; margin-bottom: 20px; }
+.profile-avatar { width: 60px; height: 60px; border-radius: 18px; background: linear-gradient(145deg,#e92a40,#781020); display: grid; place-items: center; font-size: 24px; font-weight: 900; }
+.panel { background: #15151b; border: 1px solid #2a2a33; border-radius: 20px; padding: 17px; margin-bottom: 15px; }
+.panel h3 { font-size: 14px; margin-bottom: 15px; }
+.field-label { font-size: 10px; color: #a4a4af; display: block; margin-bottom: 7px; margin-top: 12px; }
+.field { width: 100%; border: 1px solid #34343d; border-radius: 12px; padding: 12px; background: #0e0e13; color: white; outline: none; font-size: 12px; }
+.badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.badge-item { padding: 10px 4px; border: 1px solid #2b2b34; border-radius: 12px; background: #1b1b22; text-align: center; }
+.badge-item span { display: block; font-size: 20px; margin-bottom: 5px; }
+.badge-item small { font-size: 8px; color: #b3b3be; font-weight: bold; }
+
+/* PASTKI NAVIGATSIYA */
+.bottom-nav { position: fixed; z-index: 10; bottom: 0; left: 50%; transform: translateX(-50%); width: min(520px, 100%); padding: 10px 13px calc(10px + env(safe-area-inset-bottom)); background: #101015ed; backdrop-filter: blur(20px); border-top: 1px solid #28282f; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.nav-item { border-radius: 15px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 9px 4px; color: #777783; font-size: 10px; font-weight: 800; border: none; cursor: pointer; transition: 0.2s; }
+.nav-item .nav-icon { font-size: 18px; }
+.nav-item.active { color: #fff; background: #e51e321c; }
+.nav-item.active .nav-icon { filter: drop-shadow(0 0 5px #e51e3266); }
+
+/* MODALLAR VA TOAST */
+.toast { position: fixed; z-index: 30; left: 50%; bottom: 100px; transform: translate(-50%, 15px); opacity: 0; pointer-events: none; background: #f5f5f7; color: #15151b; padding: 12px 17px; border-radius: 14px; font-size: 12px; font-weight: 800; box-shadow: 0 8px 25px #0006; transition: 0.25s; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.modal-wrap { position: fixed; z-index: 20; inset: 0; background: #0009; display: none; align-items: flex-end; justify-content: center; padding: 12px; }
+.modal-wrap.show { display: flex; }
+.modal { width: 100%; background: #17171e; border: 1px solid #34343d; border-radius: 24px; padding: 22px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0.5; } to { transform: translateY(0); opacity: 1; } }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.modal-head h3 { font-size: 18px; margin: 0; }
+.close { width: 34px; height: 34px; border-radius: 10px; background: #292932; font-size: 18px; border: none; color: white; cursor: pointer; }
+.modal p { font-size: 12px; color: #aaaab5; line-height: 1.5; margin-bottom: 15px; }
+
+/* TURNIR SETKASI (BRACKET) */
+.bracket-view { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; min-width: 100%; }
+.bracket-col { display: flex; flex-direction: column; justify-content: space-around; gap: 15px; min-width: 120px; }
+.bracket-match { background: #1a1a22; border: 1px solid #333; border-radius: 8px; overflow: hidden; }
+.bracket-player { padding: 8px; font-size: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+.bracket-player:last-child { border-bottom: none; }
+.bracket-player.win { background: #173729; color: #65e6a8; font-weight: bold; }
+
+/* SLOTLAR */
+.slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0; }
+.slot { padding: 12px 0; border-radius: 10px; background: #1b3a2b; border: 1px solid #286847; color: #83f1b6; font-size: 11px; font-weight: 800; cursor: pointer; text-align: center; }
+.slot.taken { background: #451c25; border-color: #7d2b39; color: #ff8592; pointer-events: none; }
+.slot.vip { background: #41351b; border-color: #806a2a; color: #ffda77; }
+</style>
+</head>
+<body>
+
+<!-- 1 SONIYALIK ANIMATSIYA -->
+<div id="splash-screen">
+    <svg class="splash-logo" viewBox="0 0 100 100">
+        <path fill="#ffffff" d="M20,80 L20,20 L40,20 L80,80 L80,20 L60,20 L20,80 Z"/>
+        <path fill="#e51e32" d="M20,80 L20,20 L40,20 L60,60 L60,80 Z" opacity="0.9"/>
+    </svg>
+    <div class="splash-text">NEXAR <span>ESPORTS</span></div>
+</div>
+
+<div class="app">
+<header>
+  <div class="brand"><div class="mark">NX</div><div><div class="brand-name">NEXAR ESPORTS</div><div class="brand-sub">PLAY YOUR LEVEL</div></div></div>
+  <button class="icon-btn" onclick="toast('Bildirishnomalar mavjud emas')" style="background:#15151b; border:1px solid #2b2b33; border-radius:12px; padding:8px; color:white; cursor:pointer;">🔔</button>
+</header>
+
+<main>
+<!-- TURNIR BOSH SAHIFASI -->
+<section id="page-tournaments" class="screen active">
+  <div class="tourn-hero">
+    <svg viewBox="0 0 100 100" style="width: 80px; height: 80px; margin: 0 auto 15px auto; display: block;">
+      <path fill="#ffffff" d="M20,80 L20,20 L40,20 L80,80 L80,20 L60,20 L20,80 Z"/>
+      <path fill="#e51e32" d="M20,80 L20,20 L40,20 L60,60 L60,80 Z" opacity="0.9"/>
+    </svg>
+    <h1>NEXAR <span>ESPORTS</span></h1>
+    <p>PLAY YOUR LEVEL</p>
+  </div>
+
+  <button class="main-btn main-btn-primary" onclick="go('main-tournament')">
+    <div class="btn-content"><h2>ASOSIY TURNIR</h2><p>Katta musobaqalar va sovrinlar</p></div>
+    <div class="btn-icon">🏆</div>
+  </button>
+
+  <button class="main-btn main-btn-secondary" onclick="go('show-match')">
+    <div class="btn-content"><h2>SHOU MATCH</h2><p>1v1 yuzma-yuz jang. Faqat bitta g'olib.</p></div>
+    <div class="btn-icon">⚔️</div>
+  </button>
+</section>
+
+<!-- ASOSIY TURNIR SAHIFASI -->
+<section id="page-main-tournament" class="screen">
+  <button class="btn secondary" onclick="go('tournaments')" style="margin-bottom:20px;">← Orqaga</button>
+  <div class="eyebrow">NEXAR COMPETITION</div>
+  <h1 class="section-title">ASOSIY TURNIR</h1>
+  
+  <div class="wide-card">
+    <div class="wide-icon">🏆</div>
+    <div class="wide-info"><h4>PUBG MOBILE TDM</h4><p>32 slots · 21:00 · Sovrin: 100,000 so'm</p></div>
+  </div>
+
+  <button class="btn full" onclick="openSlots()">Ro'yxatdan o'tish (Slot tanlash)</button>
+  
+  <div style="margin-top:25px;">
+    <h3 style="font-size:14px; margin-bottom:10px;">Turnir Setkasi (Bracket)</h3>
+    <button class="btn secondary full" onclick="openBracket()">Setkani ko'rish</button>
+  </div>
+</section>
+
+<!-- SHOU MATCH SAHIFASI -->
+<section id="page-show-match" class="screen">
+  <button class="btn secondary" onclick="go('tournaments')" style="margin-bottom:20px;">← Orqaga</button>
+  <div class="eyebrow">NEXAR DUEL ARENA</div>
+  <h1 class="section-title">SHOU MATCH</h1>
+  <p class="sub">1v1. Bitta raqib. Bitta g'alaba.</p>
+  
+  <div class="match-grid">
+    <div class="match-card">
+      <div class="versus"><div class="avatar">A</div><span class="vs">VS</span><div class="avatar">B</div></div>
+      <h4>Match #1</h4><p>21:00 · 30 UC</p>
+      <button class="btn" onclick="toast('Ariza yuborildi!')">Qo'shilish</button>
+    </div>
+    <div class="match-card">
+      <div class="versus"><div class="avatar">C</div><span class="vs">VS</span><div class="avatar">D</div></div>
+      <h4>Match #2</h4><p>21:30 · 30 UC</p>
+      <button class="btn" onclick="toast('Ariza yuborildi!')">Qo'shilish</button>
+    </div>
+  </div>
+</section>
+
+<!-- MARKETPLACE SAHIFASI -->
+<section id="page-marketplace" class="screen">
+  <div class="eyebrow">NEXAR STORE</div>
+  <h1 class="section-title">Marketplace</h1>
+  <div class="market-card" onclick="toast('Admin bilan bog\'lanish: @nexar_admin')">
+    <div class="wide-icon">💎</div><div><h3>UC SERVICE</h3><p>PUBG Mobile UC xizmati</p></div><span style="margin-left:auto;">↗</span>
+  </div>
+  <div class="market-card" onclick="toast('Admin bilan bog\'lanish: @nexar_admin')">
+    <div class="wide-icon">🎮</div><div><h3>AKKAUNT SAVDO</h3><p>O'yin akkauntlari</p></div><span style="margin-left:auto;">↗</span>
+  </div>
+</section>
+
+<!-- PROFIL SAHIFASI -->
+<section id="page-profile" class="screen">
+  <div class="eyebrow">PLAYER ACCOUNT</div>
+  <h1 class="section-title">Profilim</h1>
+  
+  <div class="profile-top">
+    <div class="profile-avatar" id="tg-avatar">N</div>
+    <div>
+      <h3 id="tg-name">NEXAR PLAYER</h3>
+      <p id="tg-username">@telegram_user</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>PUBG Ma'lumotlari</h3>
+    <label class="field-label">PUBG NIKNEYM</label>
+    <input class="field" id="pubg-nick" placeholder="Ismingiz">
+    <label class="field-label">PUBG ID</label>
+    <input class="field" id="pubg-id" placeholder="ID raqamingiz">
+    <button class="btn full" onclick="saveProfile()">Saqlash</button>
+  </div>
+
+  <div class="panel">
+    <h3>Nishonlar</h3>
+    <div class="badge-grid">
+      <div class="badge-item"><span>🏆</span><small>CHAMP</small></div>
+      <div class="badge-item"><span>⚡</span><small>FAST</small></div>
+      <div class="badge-item"><span>🎯</span><small>SNIPER</small></div>
+      <div class="badge-item"><span>🛡️</span><small>VET</small></div>
+    </div>
+  </div>
+</section>
+</main>
+</div>
+
+<!-- PASTKI NAVIGATSIYA -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-target="tournaments" onclick="go('tournaments')"><span class="nav-icon">🏠</span><span>TURNIR</span></button>
+  <button class="nav-item" data-target="marketplace" onclick="go('marketplace')"><span class="nav-icon">🛍️</span><span>MARKETPLACE</span></button>
+  <button class="nav-item" data-target="profile" onclick="go('profile')"><span class="nav-icon">👤</span><span>PROFIL</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+<div class="modal-wrap" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-title"></h3><button class="close" onclick="closeModal()">×</button></div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+// Telegram WebApp
+const tg = window.Telegram?.WebApp;
+if(tg) { tg.ready(); tg.expand(); }
+
+// Foydalanuvchi ma'lumotlari
+if(tg?.initDataUnsafe?.user) {
+  const u = tg.initDataUnsafe.user;
+  document.getElementById('tg-name').textContent = u.first_name || 'PLAYER';
+  document.getElementById('tg-username').textContent = '@' + (u.username || 'user');
+  document.getElementById('tg-avatar').textContent = (u.first_name || 'N').charAt(0).toUpperCase();
+}
+
+// Navigatsiya
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.target === id || (id.includes('tournament') || id.includes('show') ? n.dataset.target === 'tournaments' : false));
+  });
+  window.scrollTo(0,0);
+}
+
+// Toast
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Modal
+function openModal(title, html) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+// Slotlar
+function openSlots() {
+  let slots = '';
+  for(let i=1; i<=32; i++) {
+    let cls = i <= 4 ? 'slot vip' : (i === 7 || i === 15 ? 'slot taken' : 'slot');
+    slots += `<div class="${cls}" onclick="pickSlot(${i})">${String(i).padStart(2,'0')}</div>`;
+  }
+  openModal('SLOT TANLASH', `<p>O'zingizga mos slotni tanlang:</p><div class="slot-grid">${slots}</div>`);
+}
+function pickSlot(n) { closeModal(); toast('Siz ' + n + '-slotni tanladingiz!'); }
+
+// Setka (Bracket)
+function openBracket() {
+  let html = `
+    <div class="bracket-view">
+      <div class="bracket-col">
+        <div class="bracket-match"><div class="bracket-player win">Player 1</div><div class="bracket-player">Player 2</div></div>
+        <div class="bracket-match"><div class="bracket-player">Player 3</div><div class="bracket-player win">Player 4</div></div>
+      </div>
+      <div class="bracket-col" style="justify-content:center;">
+        <div class="bracket-match"><div class="bracket-player win">Player 1</div><div class="bracket-player">Player 4</div></div>
+      </div>
+    </div>
+    <p style="text-align:center; margin-top:15px; font-size:10px;">*Bu faqat vizual namuna. Admin panel orqali boshqariladi.</p>
+  `;
+  openModal('TURNIR SETKASI', html);
+}
+
+// Profilni saqlash
+function saveProfile() {
+  const nick = document.getElementById('pubg-nick').value;
+  const id = document.getElementById('pubg-id').value;
+  if(!nick || !id) return toast('Iltimos, barcha maydonlarni to\'ldiring!');
+  localStorage.setItem('nexar_nick', nick);
+  localStorage.setItem('nexar_id', id);
+  toast('Ma\'lumotlar muvaffaqiyatli saqlandi!');
+}
+
+// Ma'lumotlarni yuklash
+window.onload = () => {
+  const n = localStorage.getItem('nexar_nick');
+  const i = localStorage.getItem('nexar_id');
+  if(n) document.getElementById('pubg-nick').value = n;
+  if(i) document.getElementById('pubg-id').value = i;
+};
+</script>
+</body>
+</html>
